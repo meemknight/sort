@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(sort)
 
 add_subdirectory(thirdparty/glad)
+add_subdirectory(thirdparty/profilerLib)
 
 
 # Define MY_SOURCES to be a list of all the source files for my game 
@@ -33,5 +34,6 @@ endif()
 
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/sort")
 
-target_link_libraries("${CMAKE_PROJECT_NAME}" PRIVATE glad)
 
+
+target_link_libraries("${CMAKE_PROJECT_NAME}" PRIVATE glad profilerLib)

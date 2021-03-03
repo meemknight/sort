@@ -2,6 +2,8 @@
 #include <iostream>
 #include <ctime>
 #include "tools.h"
+#include "profilerLib.h"
+
 
 #ifdef PLATFORM_WIN32
 #include <Windows.h>
