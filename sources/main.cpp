@@ -290,7 +290,7 @@ void mergeSort(T begin, T end)
 	mergeSort(middle, end);
 
 	//now merge
-	std::vector<T::value_type> v;
+	std::vector< std::remove_reference_t<decltype(*begin)>> v;
 	v.reserve(end - begin + 1);
 
 	auto it1 = begin;
