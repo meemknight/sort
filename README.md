@@ -18,16 +18,17 @@ standard implementation           : time(s) 0.005825, cpu clocks: 0016354241, ve
 standard implementation (paralel) : time(s) 0.004257, cpu clocks: 0011951958, vector size: 100000, tests: 1
 merge sort                        : time(s) 0.185112, cpu clocks: 0519793092, vector size: 1000000, tests: 1
 quick sort                        : time(s) 0.356671, cpu clocks: 1001527623, vector size: 1000000, tests: 1
+threaded quick sort               : time(s) 0.145260, cpu clocks: 0407889517, vector size: 1000000, tests: 1
 
 ----
 
 
-threaded quick sort               : time(s) 7.323883, cpu clocks: ---, vector size: 10000000, tests: 1
 standard implementation           : time(s) 0.485505, cpu clocks: 1363296394, vector size: 10000000, tests: 1
 standard implementation (paralel) : time(s) 0.152076, cpu clocks: 0427028445, vector size: 10000000, tests: 1
+threaded quick sort               : time(s) 7.323883, cpu clocks: ----------, vector size: 10000000, tests: 1
 merge sort                        : time(s) 1.576557, cpu clocks: 0132000493, vector size: 10000000, tests: 1
-quick sort                        : time(s) 0.285223, cpu clocks: 0800903088, vector size: 1000000, tests: 1
-threaded quick sort               : time(s) 0.145260, cpu clocks: 0407889517, vector size: 1000000, tests: 1
+
+
 
 ---
 
