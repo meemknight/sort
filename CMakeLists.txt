@@ -9,7 +9,12 @@ add_subdirectory(thirdparty/profilerLib)
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp")
 
 
-add_executable("${CMAKE_PROJECT_NAME}")
+add_executable("sort")
+target_sources("sort" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/sources/main.cpp")
+
+add_executable("pairingHeap")
+target_sources("pairingHeap" PRIVATE "sources/pairingHeap.h" "sources/pairingHeapMain.cpp")
+
 
 set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY CXX_STANDARD 17)
 
@@ -17,7 +22,6 @@ target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC RESOURCES_PATH="${CMAK
 #target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC RESOURCES_PATH="./resources/") # Uncomment this line to setup the ASSETS_PATH macro to the final assets directory when you share the game
 #add_definitions(-DRESOURCES_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/")
 
-target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${MY_SOURCES} )
 
 
 if(MSVC) # If using the VS compiler...
