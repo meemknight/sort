@@ -1,27 +1,52 @@
 #include "pairingHeap.h"
 #include <cstdlib>
 #include <iostream>
+#include <random>
+#include <functional>
+#include <algorithm>
 
 int main()
 {
 
+	
+	std::vector<int> vec;
+	std::generate_n(std::back_inserter(vec), 10, [v = 0]()mutable { return v++; });
+	std::random_shuffle(vec.begin(), vec.end());
+
+	std::vector<int> vec2;
+	std::generate_n(std::back_inserter(vec), 10, [v = 10]()mutable { return v++; });
+	std::random_shuffle(vec.begin(), vec.end());
+
+	for (auto &i : vec)
+	{
+		std::cout << i << " ";
+	}
+
+	for (auto &i : vec2)
+	{
+		std::cout << i << " ";
+	}
+
 	PairingHeap heap1;
 	PairingHeap heap2;
 
-	heap2.root = new PairingHeap::Node(4);
-
-	heap1.root = new PairingHeap::Node(1);
-	heap1.root->child = new PairingHeap::Node(2);
-	heap1.root->child->sibling = new PairingHeap::Node(3);
-	heap1.root->child->child = new PairingHeap::Node(6);
-	heap1.root->child->child->sibling = new PairingHeap::Node(5);
-
+	heap1.build(vec);
+	heap2.build(vec2);
 
 	heap1.meld(heap2);
 
+	std::cout << "\n";
 
+	vec.clear();
 
-	std::cout << "hello\n";
+	vec = heap1.getSortedElements();
+
+	for (auto &i : vec)
+	{
+		std::cout << i << " ";
+	}
+
+	std::cout << "\n";
 
 	system("pause");
 }

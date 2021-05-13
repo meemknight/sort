@@ -1,5 +1,6 @@
 #pragma once
 #include <assert.h>
+#include <vector>
 
 //https://brilliant.org/wiki/pairing-heap/
 //https://en.wikipedia.org/wiki/Pairing_heap#:~:text=Pairing%20heaps%20are%20heap%2Dordered,top%20element%20of%20the%20heap.
@@ -54,11 +55,49 @@ struct PairingHeap
 				return b;
 			}
 		}
+
+		static Node *twoPassMerge(Node *node)
+		{
+			if (node == nullptr || node->sibling == nullptr)
+			{return node;}
+
+			Node *a, *b, *newNode;
+			a = node;
+			b = node->sibling;
+			newNode = node->sibling->sibling;
+
+			a->sibling = NULL;
+			b->sibling = NULL;
+
+			return merge(merge(a, b), twoPassMerge(newNode));
+		}
+
 	};
 
 	Node *root = nullptr;
 
-	
+	void build(const std::vector<Type> &v)
+	{
+		for(const auto &i : v)
+		{
+			insert(i);
+		}
+	}
+
+	std::vector<Type> getSortedElements()
+	{
+		std::vector<Type> v;
+
+		while (!empty())
+		{
+			v.push_back(root->value);
+			
+			deleteFirst();
+		}
+
+		return std::move(v);
+	}
+
 	Type min()
 	{
 		assert(root != nullptr);
@@ -85,5 +124,16 @@ struct PairingHeap
 
 		this->meld(heap);
 	}
+
+	void deleteFirst()
+	{
+		if (empty()) { return; }
+
+		auto child = root->child;
+		delete this->root;
+
+		this-> root = Internal::twoPassMerge(child);
+	}
+
 
 };
