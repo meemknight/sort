@@ -10,6 +10,7 @@
 #include <atomic>
 #include <execution>
 #include <functional>
+#include "pairingHeap.h"
 using namespace std::placeholders;
 
 #ifdef PLATFORM_WIN32
@@ -274,6 +275,27 @@ void threadedQuickSort(T begin, T end)
 
 }
 
+
+template <typename T>
+void pairingHeapSort(T begin, T end)
+{
+	PairingHeap heap;
+
+	for(auto i = begin; i<end; i++)
+	{
+		heap.insert(*i);
+	}
+
+	std::vector<std::remove_reference_t<decltype(*begin)>> v;
+	v = heap.getSortedElements();
+
+	for (auto i = begin; i < end; i++)
+	{
+		*i = v[i-begin];
+	}
+
+}
+
 template <typename T>
 void mergeSort(T begin, T end)
 {
@@ -369,10 +391,10 @@ void doTest(std::string testName, T sortFunc, int size)
 		sortFunc(vect.begin(), vect.end());
 		profiler.end();
 
-		//if(!std::is_sorted(vect.begin(), vect.end()))
-		//{
-		//	good = 0;
-		//}
+		if(!std::is_sorted(vect.begin(), vect.end()))
+		{
+			good = 0;
+		}
 
 	}
 
@@ -411,15 +433,14 @@ int main()
 	};
 
 
-	doTest("standard implementation          ", std::sort<std::vector<int>::iterator>, 1'00'000);
+	doTest("standard implementation          ", std::sort<std::vector<int>::iterator>, 100'000);
+	doTest("Pairing heap                     ", pairingHeapSort<std::vector<int>::iterator>, 100'000);
 	doTest("standard implementation (paralel)", paralelSortStandard, 1'00'000);
 	doTest("merge sort                       ", mergeSort<std::vector<int>::iterator>, 1'000'000);
 	doTest("quick sort                       ", quickSort<std::vector<int>::iterator>, 1'000'000);
 	//doTest("threaded quick sort (naive)      ", threadedQuickSortNaive<std::vector<int>::iterator>, 1'000'000);
 	doTest("threaded quick sort              ", threadedQuickSort<std::vector<int>::iterator>, 1'000'000);
 	doTest("bouble sort                      ", boubleSort<std::vector<int>::iterator>, 1'000'000);
-
-
 
 
 	system("pause");

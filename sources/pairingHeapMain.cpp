@@ -7,46 +7,42 @@
 
 int main()
 {
+	constexpr int size = 200'000;
+	constexpr int heapsSize = 10;
+
+	std::vector<int> vec;
+	vec.reserve(size);
+	std::generate_n(std::back_inserter(vec), size, [v = 0]()mutable { return v++; });
+	std::random_shuffle(vec.begin(), vec.end());
+
+	PairingHeap heaps[heapsSize];
+	int index = 0;
+
+	for (int i = 0; i < vec.size(); i++)
+	{
+		heaps[index].insert(vec[i]);
+
+		index++;
+		index %= heapsSize;
+
+	}
+	
+	PairingHeap heap;
+	
+	for(int i=0;i<heapsSize;i++)
+	{
+		heap.meld(heaps[i]);
+	}
 
 	
-	std::vector<int> vec;
-	std::generate_n(std::back_inserter(vec), 10, [v = 0]()mutable { return v++; });
-	std::random_shuffle(vec.begin(), vec.end());
-
-	std::vector<int> vec2;
-	std::generate_n(std::back_inserter(vec), 10, [v = 10]()mutable { return v++; });
-	std::random_shuffle(vec.begin(), vec.end());
-
-	for (auto &i : vec)
-	{
-		std::cout << i << " ";
-	}
-
-	for (auto &i : vec2)
-	{
-		std::cout << i << " ";
-	}
-
-	PairingHeap heap1;
-	PairingHeap heap2;
-
-	heap1.build(vec);
-	heap2.build(vec2);
-
-	heap1.meld(heap2);
-
 	std::cout << "\n";
 
 	vec.clear();
 
-	vec = heap1.getSortedElements();
+	vec = heap.getSortedElements();
 
-	for (auto &i : vec)
-	{
-		std::cout << i << " ";
-	}
+	std::cout << (std::is_sorted(vec.begin(), vec.end()) ? "vector is sorted properly" : "vector is not sorted properly") << "\n";
 
-	std::cout << "\n";
 
 	system("pause");
 }

@@ -6,6 +6,8 @@
 //https://en.wikipedia.org/wiki/Pairing_heap#:~:text=Pairing%20heaps%20are%20heap%2Dordered,top%20element%20of%20the%20heap.
 //https://www.geeksforgeeks.org/pairing-heap/
 
+#undef min
+
 struct PairingHeap
 {
 
