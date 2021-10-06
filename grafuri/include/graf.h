@@ -2,6 +2,8 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#undef max
+#undef min
 
 struct Graf
 {
@@ -13,8 +15,11 @@ struct Graf
 	//data is a nodesCount * nodesCount matrix with 0 or one
 	void createFromMatrix(const int *data, int nodesCount); 
 
-
+	//data is a pair of 2 numbers defining an edge (1-2 is the same as 2-1 and edges like 1-1 are ignored)
 	void createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne);
+
+	//for every node(first vector) we have some neighbours(second vector)
+	void createFromListOfNeighbours(const std::vector<std::vector<int>> &data, bool startFromOne);
 
 #pragma endregion
 
@@ -108,7 +113,7 @@ inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool s
 		sortedData.emplace_back(data[i * 2 + 1] - (int)startFromOne, data[i * 2 + 0] - (int)startFromOne);
 	}
 
-
+	//todo remove duplicates if they exist
 
 	std::sort(sortedData.begin(), sortedData.end(), []
 	(std::pair<int, int> a, std::pair<int, int> b) 
@@ -144,6 +149,30 @@ inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool s
 		neighbours.push_back(i.second);
 		entries[i.first].size++;
 
+	}
+
+	neighbours.shrink_to_fit();
+}
+
+inline void Graf::createFromListOfNeighbours(const std::vector<std::vector<int>> &data, bool startFromOne)
+{
+	neighbours.clear();
+	entries.clear();
+	this->nodesCount = std::max((unsigned int)data.size() - (unsigned int)startFromOne, (unsigned int)0);
+	if (this->nodesCount == 0) { return; }
+
+	entries.resize(this->nodesCount);
+	neighbours.reserve(this->nodesCount * (this->nodesCount - 1)); //reserve the max possible size and shrink later
+	
+	for (int i = (int)startFromOne; i < data.size(); i++)
+	{
+		entries[i - (int)startFromOne].pos = neighbours.size();
+		entries[i - (int)startFromOne].size = data[i].size();
+
+		for (int j = 0; j < data[i].size(); j++)
+		{
+			neighbours.push_back(data[i][j] - (int)startFromOne);
+		}
 	}
 
 	neighbours.shrink_to_fit();

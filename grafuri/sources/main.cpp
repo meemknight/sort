@@ -47,9 +47,24 @@ int main()
 		4, 6,
 	};
 
-	//g.createFromMatrix(matrix, 9);
-	g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true);
+	std::vector<std::vector<int>> listOfNeighbours;
 
+	listOfNeighbours.push_back({ });
+	listOfNeighbours.push_back({ 2, 3, 4 });
+	listOfNeighbours.push_back({ 1, 9, 5 });
+	listOfNeighbours.push_back({ 1, 5, 7 });
+	listOfNeighbours.push_back({ 1, 6 });
+	listOfNeighbours.push_back({ 2, 3, 7 });
+	listOfNeighbours.push_back({ 4, 8, 7 });
+	listOfNeighbours.push_back({ 3, 6, 5 });
+	listOfNeighbours.push_back({ 6 });
+	listOfNeighbours.push_back({ 2 });
+
+	
+	//g.createFromMatrix(matrix, 9);
+	//g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true);
+	g.createFromListOfNeighbours(listOfNeighbours, true);
+	
 
 	g.printNeighbours(true);
 
