@@ -51,7 +51,8 @@ struct Graf
 	std::pair<std::vector<int>::iterator, std::vector<int>::iterator>
 		getNeighbours(int element);
 
-	void printNeighbours(bool startFromOne = 0); //prints all neighbours from nodes
+	void printMatrix();
+	void printListOfNeighbours(bool startFromOne = 0); //prints all neighbours from nodes
 
 #pragma endregion
 
@@ -195,7 +196,35 @@ inline std::pair<std::vector<int>::iterator, std::vector<int>::iterator> Graf::g
 	return ret;
 }
 
-inline void Graf::printNeighbours(bool startFromOne)
+inline void Graf::printMatrix()
+{
+	for (int j = 0; j < nodesCount; j++)
+	{
+		auto n = getNeighbours(j);
+		for (int i = 0; i < nodesCount; i++)
+		{
+			if (i == j)
+			{
+				std::cout << '0';
+			}
+			else
+			{
+				if (std::find(n.first, n.second, i) != n.second)
+				{
+					std::cout << '1';
+				}
+				else
+				{
+					std::cout << '0';
+				}
+			}
+			std::cout << " ";
+		}
+		std::cout << "\n";
+	}
+}
+
+inline void Graf::printListOfNeighbours(bool startFromOne)
 {
 	for (int i = 0; i < nodesCount; i++)
 	{
