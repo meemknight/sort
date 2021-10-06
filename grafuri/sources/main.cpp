@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>
+#include "graf.h"
 
 #ifdef PLATFORM_WIN32
 #include <Windows.h>
@@ -19,8 +20,23 @@ int main()
 #endif
 #endif
 
+	Graf g;
+
+	int matrix[] ={
+		0, 1, 1, 1, 0, 0, 0, 0, 0,
+		1, 0, 0, 0, 1, 0, 0, 0, 1,
+		1, 0, 0, 0, 1, 0, 1, 0, 0,
+		1, 0, 0, 0, 0, 1, 0, 0, 0,
+		0, 1, 1, 0, 0, 0, 1, 0, 0,
+		0, 0, 0, 1, 0, 0, 1, 1, 0,
+		0, 0, 1, 0, 1, 1, 0, 0, 0,
+		0, 0, 0, 0, 0, 1, 0, 0, 0,
+		0, 1, 0, 0, 0, 0, 0, 0, 0, };
+
+	g.createFromMatrix(matrix, 9);
 	
-	std::cout << "hello world?\n";
+	g.printNeighbours(1);
+
 
 	system("pause");
 	return 0;
