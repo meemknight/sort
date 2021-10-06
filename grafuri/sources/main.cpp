@@ -33,9 +33,25 @@ int main()
 		0, 0, 0, 0, 0, 1, 0, 0, 0,
 		0, 1, 0, 0, 0, 0, 0, 0, 0, };
 
-	g.createFromMatrix(matrix, 9);
-	
-	g.printNeighbours(1);
+	int edges[] = {
+		1, 2,
+		1, 3,
+		1, 4,
+		2, 5,
+		2, 9,
+		3, 5,
+		3, 7,
+		5, 7,
+		6, 7,
+		6, 8,
+		4, 6,
+	};
+
+	//g.createFromMatrix(matrix, 9);
+	g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true);
+
+
+	g.printNeighbours(true);
 
 
 	system("pause");

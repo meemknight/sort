@@ -1,15 +1,21 @@
 #pragma once
 #include <vector>
 #include <utility>
-
+#include <algorithm>
 
 struct Graf
 {
 #pragma region constructors
 	Graf() = default;
 	
+	//todo add some templates
+
 	//data is a nodesCount * nodesCount matrix with 0 or one
 	void createFromMatrix(const int *data, int nodesCount); 
+
+
+	void createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne);
+
 #pragma endregion
 
 
@@ -81,7 +87,64 @@ inline void Graf::createFromMatrix(const int *data, int nodesCount)
 		entries.push_back(entry); //this reprezents node number y
 	}
 
+	neighbours.shrink_to_fit();
+}
 
+inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne)
+{
+	neighbours.clear();
+	entries.clear();
+	this->nodesCount = 0;
+
+	if (edgesCount == 0) { return; }
+
+
+	std::vector<std::pair<int, int>> sortedData;
+	sortedData.reserve(edgesCount*2);
+	
+	for (int i = 0; i < edgesCount; i++)
+	{
+		sortedData.emplace_back(data[i * 2 + 0] - (int)startFromOne, data[i * 2 + 1] - (int)startFromOne);
+		sortedData.emplace_back(data[i * 2 + 1] - (int)startFromOne, data[i * 2 + 0] - (int)startFromOne);
+	}
+
+
+
+	std::sort(sortedData.begin(), sortedData.end(), []
+	(std::pair<int, int> a, std::pair<int, int> b) 
+	{
+		if (a.first == b.first)
+		{
+			return a.second < b.second;
+		}
+		else
+		{
+			return a.first < b.first;
+		}
+
+	});
+
+	this->nodesCount = sortedData.back().first + 1;
+
+	entries.resize(this->nodesCount);
+	neighbours.reserve(this->nodesCount * (this->nodesCount - 1)); //reserve the max possible size and shrink later
+
+	int lastNode = -1;
+	for (auto &i :sortedData)
+	{
+		if (i.first == i.second) { continue; }
+
+		if (lastNode != i.first)
+		{
+			entries[i.first].pos = neighbours.size();
+		}
+
+		lastNode = i.first;
+
+		neighbours.push_back(i.second);
+		entries[i.first].size++;
+
+	}
 
 	neighbours.shrink_to_fit();
 }
