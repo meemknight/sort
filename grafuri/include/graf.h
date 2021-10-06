@@ -2,6 +2,8 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <unordered_set>
+#include <set>
 #undef max
 #undef min
 
@@ -16,7 +18,7 @@ struct Graf
 	void createFromMatrix(const int *data, int nodesCount); 
 
 	//data is a pair of 2 numbers defining an edge (1-2 is the same as 2-1 and edges like 1-1 are ignored)
-	void createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne);
+	void createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne, int optionalNodes = -1);
 
 	//for every node(first vector) we have some neighbours(second vector)
 	void createFromListOfNeighbours(const std::vector<std::vector<int>> &data, bool startFromOne);
@@ -51,8 +53,13 @@ struct Graf
 	std::pair<std::vector<int>::iterator, std::vector<int>::iterator>
 		getNeighbours(int element);
 
+	std::vector<int> getMatrix(int *nodesCount);
+	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne);
+	std::vector<std::vector<int>> getListOfNeighbours(bool startFromOne);
+
 	void printMatrix();
-	void printListOfNeighbours(bool startFromOne = 0); //prints all neighbours from nodes
+	void printListOfNeighbours(bool startFromOne); //prints all neighbours from nodes
+	void printPairsOfEdges(bool startFromOne);
 
 #pragma endregion
 
@@ -96,14 +103,14 @@ inline void Graf::createFromMatrix(const int *data, int nodesCount)
 	neighbours.shrink_to_fit();
 }
 
-inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne)
+inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne, int optionalNodes)
 {
 	neighbours.clear();
 	entries.clear();
 	this->nodesCount = 0;
 
 	if (edgesCount == 0) { return; }
-
+	if (optionalNodes == 0) { return; }
 
 	std::vector<std::pair<int, int>> sortedData;
 	sortedData.reserve(edgesCount*2);
@@ -130,7 +137,15 @@ inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool s
 
 	});
 
-	this->nodesCount = sortedData.back().first + 1;
+	if (optionalNodes >= 0)
+	{
+		this->nodesCount = optionalNodes;
+	}
+	else
+	{
+		this->nodesCount = sortedData.back().first + 1;
+	}
+
 
 	entries.resize(this->nodesCount);
 	neighbours.reserve(this->nodesCount * (this->nodesCount - 1)); //reserve the max possible size and shrink later
@@ -196,11 +211,97 @@ inline std::pair<std::vector<int>::iterator, std::vector<int>::iterator> Graf::g
 	return ret;
 }
 
-inline void Graf::printMatrix()
+inline std::vector<int> Graf::getMatrix(int *nodesCount)
 {
-	for (int j = 0; j < nodesCount; j++)
+	if (nodesCount) { *nodesCount = this->nodesCount; }
+
+	std::vector<int> ret;
+	ret.reserve(this->nodesCount * this->nodesCount);
+
+	for (int j = 0; j < this->nodesCount; j++)
 	{
 		auto n = getNeighbours(j);
+		for (int i = 0; i < this->nodesCount; i++)
+		{
+			if (i == j)
+			{
+				ret.push_back(0);
+			}
+			else
+			{
+				if (std::find(n.first, n.second, i) != n.second)
+				{
+					ret.push_back(1);
+				}
+				else
+				{
+					ret.push_back(0);
+				}
+			}
+		}
+	}
+
+
+	return ret;
+}
+
+inline std::vector<std::pair<int, int>> Graf::getPairsOfEdges(bool startFromOne)
+{
+	std::vector<std::pair<int, int>> edges;
+	edges.reserve(neighbours.size() + 2);
+
+	for (int i = 0; i < nodesCount; i++)
+	{
+		auto n = getNeighbours(i);
+		for (auto j = n.first; j < n.second; j++)
+		{
+			auto a = i, b = *j;
+			if (a > b)
+			{
+				std::swap(a, b);
+			}
+			edges.emplace_back(a, b);
+		}
+	}
+
+	std::set<std::pair<int, int>> s(edges.begin(), edges.end()); //todo replace with unordered_set
+	edges.assign(s.begin(), s.end());
+
+	return edges;
+}
+
+inline std::vector<std::vector<int>> Graf::getListOfNeighbours(bool startFromOne)
+{
+	std::vector<std::vector<int>> ret;
+	ret.reserve(nodesCount + (int)startFromOne);
+	
+	if (startFromOne)
+	{
+		ret.push_back({});
+	}
+
+	for (int i = 0; i < nodesCount; i++)
+	{
+		auto n = getNeighbours(i);
+
+		ret.push_back({});
+		ret.back().reserve(n.second - n.first + (int)startFromOne);
+
+		for (auto j = n.first; j < n.second; j++)
+		{
+			ret.back().push_back(*j + (int)startFromOne);
+		}
+	}
+
+	return ret;
+}
+
+inline void Graf::printMatrix()
+{
+	auto m = getMatrix(nullptr);
+
+	for (int j = 0; j < nodesCount; j++)
+	{
 		for (int i = 0; i < nodesCount; i++)
 		{
 			if (i == j)
@@ -209,14 +310,7 @@ inline void Graf::printMatrix()
 			}
 			else
 			{
-				if (std::find(n.first, n.second, i) != n.second)
-				{
-					std::cout << '1';
-				}
-				else
-				{
-					std::cout << '0';
-				}
+				std::cout << m[i + j * nodesCount];
 			}
 			std::cout << " ";
 		}
@@ -226,19 +320,26 @@ inline void Graf::printMatrix()
 
 inline void Graf::printListOfNeighbours(bool startFromOne)
 {
-	for (int i = 0; i < nodesCount; i++)
+	auto l = getListOfNeighbours(startFromOne);
+
+	for (int i = (int)startFromOne; i < l.size(); i++)
 	{
-		auto n = getNeighbours(i);
-
-		std::cout << i + (int)startFromOne << ": ";
-
-		for (auto j = n.first; j < n.second; j++)
+		std::cout << i << ": ";
+		for (auto j : l[i])
 		{
-			std::cout << *j + (int)startFromOne << ", ";
+			std::cout << j << ", ";
 		}
-
 		std::cout << "\n";
-
 	}
 
+}
+
+inline void Graf::printPairsOfEdges(bool startFromOne)
+{
+	auto edges = getPairsOfEdges(startFromOne);
+
+	for(auto &i :edges)
+	{
+		std::cout << i.first + (int)startFromOne << " " << i.second + (int)startFromOne << "\n";
+	}
 }

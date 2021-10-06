@@ -66,8 +66,9 @@ int main()
 	g.createFromListOfNeighbours(listOfNeighbours, true);
 	
 
-	//g.printListOfNeighbours(true);
 	g.printMatrix();
+	g.printListOfNeighbours(true);
+	g.printPairsOfEdges(true);
 
 
 	system("pause");

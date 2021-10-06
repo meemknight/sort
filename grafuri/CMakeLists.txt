@@ -23,6 +23,8 @@ if(MSVC) # If using the VS compiler...
 
 	set_target_properties("testGraf" PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 	set_target_properties("testGraf" PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+	target_compile_definitions("testGraf" PUBLIC _CRT_SECURE_NO_WARNINGS) 
+	
 
 endif()
 
