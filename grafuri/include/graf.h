@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <unordered_set>
 #include <set>
+#include <queue>
+
 #undef max
 #undef min
 
@@ -53,6 +55,10 @@ struct Graf
 	std::pair<std::vector<int>::iterator, std::vector<int>::iterator>
 		getNeighbours(int element);
 
+	//"from" should not be equal to "to"
+	std::vector<int> getShortestPath(int from, std::vector<int> to, bool startFromOne);
+
+
 	std::vector<int> getMatrix(int *nodesCount);
 	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne);
 	std::vector<std::vector<int>> getListOfNeighbours(bool startFromOne);
@@ -65,6 +71,7 @@ struct Graf
 
 };
 
+#pragma region creation
 inline void Graf::createFromMatrix(const int *data, int nodesCount)
 {
 	neighbours.clear();
@@ -193,6 +200,9 @@ inline void Graf::createFromListOfNeighbours(const std::vector<std::vector<int>>
 
 	neighbours.shrink_to_fit();
 }
+#pragma endregion
+
+#pragma region methods
 
 inline std::pair<std::vector<int>::iterator, std::vector<int>::iterator> Graf::getNeighbours(int element)
 {
@@ -211,6 +221,99 @@ inline std::pair<std::vector<int>::iterator, std::vector<int>::iterator> Graf::g
 	return ret;
 }
 
+inline std::vector<int> Graf::getShortestPath(int from, std::vector<int> to, bool startFromOne)
+{
+	if (startFromOne)
+	{
+		from--;
+		for (auto& i : to) //todo intrinsics here
+		{
+			i--;
+		}
+	}
+
+	std::vector<int> shortestPath;
+	shortestPath.resize(nodesCount);
+
+	std::vector<int> returnPath; //this will trace any node back to "from" using the shortest path
+	returnPath.resize(nodesCount, -1);
+
+	std::queue<std::pair<int, int>> nodesToVisit; //current node shortest path
+	nodesToVisit.push({from, 0});
+
+	while (!nodesToVisit.empty())
+	{
+		auto node = nodesToVisit.front();
+		nodesToVisit.pop();
+
+		auto n = getNeighbours(node.first);
+
+		for (auto i = n.first; i<n.second; i++)
+		{
+			if (*i != from) //not visit the first node
+			{
+				if (shortestPath[*i] == 0) //node not visited
+				{
+					shortestPath[*i] = node.second + 1;;
+					nodesToVisit.push({*i, node.second + 1 });
+					returnPath[*i] = node.first;
+				}
+			}
+		}
+	}
+	
+
+	int shortestIndex = -1;
+	int currentShortest = INT_MAX;
+	for (int i = 0; i < to.size(); i++)
+	{
+		auto n = to[i];
+		if (shortestPath[n] < currentShortest)
+		{
+			currentShortest = shortestPath[n];
+			shortestIndex = n;
+		}
+	}
+
+	std::vector<int> returnVector;
+	returnVector.reserve(currentShortest + 1);
+	{
+		int el = returnPath[shortestIndex];
+		returnVector.push_back(shortestIndex + (int)startFromOne);
+		while (el >= 0)
+		{
+			returnVector.push_back(el + (int)startFromOne);
+			el = returnPath[el];
+		}
+	}
+
+	//for (auto i : to)
+	//{
+	//	std::cout << "shortest path to " << i << " is: " << shortestPath[i]
+	//		<< " long: \n";
+	//
+	//	int el = returnPath[i];
+	//	std::cout << i << ", ";
+	//	while (el >= 0)
+	//	{
+	//		std::cout << el << ", ";
+	//		el = returnPath[el];
+	//	}
+	//
+	//	std::cout << "\n";
+	//}
+
+	std::reverse(returnVector.begin(), returnVector.end());
+	return returnVector;
+}
+
+
+
+
+#pragma endregion
+
+
+#pragma region conversions
 inline std::vector<int> Graf::getMatrix(int *nodesCount)
 {
 	if (nodesCount) { *nodesCount = this->nodesCount; }
@@ -295,7 +398,10 @@ inline std::vector<std::vector<int>> Graf::getListOfNeighbours(bool startFromOne
 
 	return ret;
 }
+#pragma endregion
 
+
+#pragma region prints
 inline void Graf::printMatrix()
 {
 	auto m = getMatrix(nullptr);
@@ -343,3 +449,4 @@ inline void Graf::printPairsOfEdges(bool startFromOne)
 		std::cout << i.first + (int)startFromOne << " " << i.second + (int)startFromOne << "\n";
 	}
 }
+#pragma endregion

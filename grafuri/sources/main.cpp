@@ -66,9 +66,16 @@ int main()
 	g.createFromListOfNeighbours(listOfNeighbours, true);
 	
 
-	g.printMatrix();
-	g.printListOfNeighbours(true);
-	g.printPairsOfEdges(true);
+	auto v = g.getShortestPath(1, {8, 9}, true);
+
+	for (auto i : v)
+	{
+		std::cout << i << " ";
+	}
+
+	//g.printMatrix();
+	//g.printListOfNeighbours(true);
+	//g.printPairsOfEdges(true);
 
 
 	system("pause");
