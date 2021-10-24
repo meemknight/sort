@@ -62,20 +62,20 @@ int main()
 
 	
 	//g.createFromMatrix(matrix, 9);
-	//g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true);
-	g.createFromListOfNeighbours(listOfNeighbours, true);
+	g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true);
+	//g.createFromListOfNeighbours(listOfNeighbours, true);
 	
 
-	auto v = g.getShortestPath(1, {8, 9}, true);
+	//auto v = g.getShortestPath(1, {8, 9}, true);
 
-	for (auto i : v)
-	{
-		std::cout << i << " ";
-	}
+	//for (auto i : v)
+	//{
+	//	std::cout << i << " ";
+	//}
 
 	//g.printMatrix();
 	//g.printListOfNeighbours(true);
-	//g.printPairsOfEdges(true);
+	g.printPairsOfEdges(true);
 
 
 	system("pause");

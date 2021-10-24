@@ -5,30 +5,27 @@
 #include <unordered_set>
 #include <set>
 #include <queue>
+#include <limits.h>
 
 #undef max
 #undef min
 
 struct Graf
 {
-#pragma region constructors
 	Graf() = default;
-	
+
 	//todo add some templates
 
 	//data is a nodesCount * nodesCount matrix with 0 or one
-	void createFromMatrix(const int *data, int nodesCount); 
+	void createFromMatrix(const int* data, int nodesCount);
 
 	//data is a pair of 2 numbers defining an edge (1-2 is the same as 2-1 and edges like 1-1 are ignored)
-	void createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne, int optionalNodes = -1);
+	void createFromPairsOfEdges(const int* data, int edgesCount, bool startFromOne, int optionalNodes = -1);
 
 	//for every node(first vector) we have some neighbours(second vector)
-	void createFromListOfNeighbours(const std::vector<std::vector<int>> &data, bool startFromOne);
-
-#pragma endregion
+	void createFromListOfNeighbours(const std::vector<std::vector<int>>& data, bool startFromOne);
 
 
-#pragma region data
 
 	int nodesCount = 0;		// this number of elements
 
@@ -48,18 +45,16 @@ struct Graf
 
 
 
-#pragma endregion
-
-#pragma region methods
 
 	std::pair<std::vector<int>::iterator, std::vector<int>::iterator>
 		getNeighbours(int element);
 
 	//"from" should not be equal to "to"
 	std::vector<int> getShortestPath(int from, std::vector<int> to, bool startFromOne);
+	std::vector<int> getPathLength(int from, std::vector<int> to, bool startFromOne);
 
 
-	std::vector<int> getMatrix(int *nodesCount);
+	std::vector<int> getMatrix(int* nodesCount);
 	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne);
 	std::vector<std::vector<int>> getListOfNeighbours(bool startFromOne);
 
@@ -67,12 +62,10 @@ struct Graf
 	void printListOfNeighbours(bool startFromOne); //prints all neighbours from nodes
 	void printPairsOfEdges(bool startFromOne);
 
-#pragma endregion
 
 };
 
-#pragma region creation
-inline void Graf::createFromMatrix(const int *data, int nodesCount)
+inline void Graf::createFromMatrix(const int* data, int nodesCount)
 {
 	neighbours.clear();
 	entries.clear();
@@ -81,7 +74,7 @@ inline void Graf::createFromMatrix(const int *data, int nodesCount)
 	entries.reserve(nodesCount);
 	neighbours.reserve(nodesCount * (nodesCount - 1)); //reserve the max possible size and shrink later
 
-	auto getEntry = [&](int x, int y) 
+	auto getEntry = [&](int x, int y)
 	{
 		return data[x + y * nodesCount];
 	};
@@ -95,7 +88,7 @@ inline void Graf::createFromMatrix(const int *data, int nodesCount)
 
 		for (int x = 0; x < nodesCount; x++)
 		{
-			if (x!=y && getEntry(x, y) != 0)
+			if (x != y && getEntry(x, y) != 0)
 			{
 				//we have a neighbour here to add to our node
 				neighbours.push_back(x);
@@ -110,7 +103,7 @@ inline void Graf::createFromMatrix(const int *data, int nodesCount)
 	neighbours.shrink_to_fit();
 }
 
-inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool startFromOne, int optionalNodes)
+inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool startFromOne, int optionalNodes)
 {
 	neighbours.clear();
 	entries.clear();
@@ -120,18 +113,18 @@ inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool s
 	if (optionalNodes == 0) { return; }
 
 	std::vector<std::pair<int, int>> sortedData;
-	sortedData.reserve(edgesCount*2);
-	
+	sortedData.reserve(edgesCount);
+
 	for (int i = 0; i < edgesCount; i++)
 	{
 		sortedData.emplace_back(data[i * 2 + 0] - (int)startFromOne, data[i * 2 + 1] - (int)startFromOne);
-		sortedData.emplace_back(data[i * 2 + 1] - (int)startFromOne, data[i * 2 + 0] - (int)startFromOne);
+		//sortedData.emplace_back(data[i * 2 + 1] - (int)startFromOne, data[i * 2 + 0] - (int)startFromOne);
 	}
 
 	//todo remove duplicates if they exist
 
 	std::sort(sortedData.begin(), sortedData.end(), []
-	(std::pair<int, int> a, std::pair<int, int> b) 
+	(std::pair<int, int> a, std::pair<int, int> b)
 	{
 		if (a.first == b.first)
 		{
@@ -153,12 +146,11 @@ inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool s
 		this->nodesCount = sortedData.back().first + 1;
 	}
 
-
 	entries.resize(this->nodesCount);
-	neighbours.reserve(this->nodesCount * (this->nodesCount - 1)); //reserve the max possible size and shrink later
+	neighbours.reserve(this->nodesCount); //we can't reserve the max possible value, it is too big
 
 	int lastNode = -1;
-	for (auto &i :sortedData)
+	for (auto& i : sortedData)
 	{
 		if (i.first == i.second) { continue; }
 
@@ -177,7 +169,7 @@ inline void Graf::createFromPairsOfEdges(const int *data, int edgesCount, bool s
 	neighbours.shrink_to_fit();
 }
 
-inline void Graf::createFromListOfNeighbours(const std::vector<std::vector<int>> &data, bool startFromOne)
+inline void Graf::createFromListOfNeighbours(const std::vector<std::vector<int>>& data, bool startFromOne)
 {
 	neighbours.clear();
 	entries.clear();
@@ -186,7 +178,7 @@ inline void Graf::createFromListOfNeighbours(const std::vector<std::vector<int>>
 
 	entries.resize(this->nodesCount);
 	neighbours.reserve(this->nodesCount * (this->nodesCount - 1)); //reserve the max possible size and shrink later
-	
+
 	for (int i = (int)startFromOne; i < data.size(); i++)
 	{
 		entries[i - (int)startFromOne].pos = neighbours.size();
@@ -200,9 +192,7 @@ inline void Graf::createFromListOfNeighbours(const std::vector<std::vector<int>>
 
 	neighbours.shrink_to_fit();
 }
-#pragma endregion
 
-#pragma region methods
 
 inline std::pair<std::vector<int>::iterator, std::vector<int>::iterator> Graf::getNeighbours(int element)
 {
@@ -223,14 +213,7 @@ inline std::pair<std::vector<int>::iterator, std::vector<int>::iterator> Graf::g
 
 inline std::vector<int> Graf::getShortestPath(int from, std::vector<int> to, bool startFromOne)
 {
-	if (startFromOne)
-	{
-		from--;
-		for (auto& i : to) //todo intrinsics here
-		{
-			i--;
-		}
-	}
+	from -= (int)startFromOne;
 
 	std::vector<int> shortestPath;
 	shortestPath.resize(nodesCount);
@@ -238,7 +221,7 @@ inline std::vector<int> Graf::getShortestPath(int from, std::vector<int> to, boo
 	std::vector<int> returnPath; //this will trace any node back to "from" using the shortest path
 	returnPath.resize(nodesCount, -1);
 
-	std::queue<std::pair<int, int>> nodesToVisit; //current node shortest path
+	std::queue<std::pair<int, int>> nodesToVisit; //current node, shortest path
 	nodesToVisit.push({from, 0});
 
 	while (!nodesToVisit.empty())
@@ -248,26 +231,25 @@ inline std::vector<int> Graf::getShortestPath(int from, std::vector<int> to, boo
 
 		auto n = getNeighbours(node.first);
 
-		for (auto i = n.first; i<n.second; i++)
+		for (auto i = n.first; i < n.second; i++)
 		{
 			if (*i != from) //not visit the first node
 			{
 				if (shortestPath[*i] == 0) //node not visited
 				{
-					shortestPath[*i] = node.second + 1;;
-					nodesToVisit.push({*i, node.second + 1 });
+					shortestPath[*i] = node.second + 1;
+					nodesToVisit.push({*i, node.second + 1});
 					returnPath[*i] = node.first;
 				}
 			}
 		}
 	}
-	
 
 	int shortestIndex = -1;
 	int currentShortest = INT_MAX;
 	for (int i = 0; i < to.size(); i++)
 	{
-		auto n = to[i];
+		auto n = to[i] - (int)startFromOne;
 		if (shortestPath[n] < currentShortest)
 		{
 			currentShortest = shortestPath[n];
@@ -287,34 +269,67 @@ inline std::vector<int> Graf::getShortestPath(int from, std::vector<int> to, boo
 		}
 	}
 
-	//for (auto i : to)
-	//{
-	//	std::cout << "shortest path to " << i << " is: " << shortestPath[i]
-	//		<< " long: \n";
-	//
-	//	int el = returnPath[i];
-	//	std::cout << i << ", ";
-	//	while (el >= 0)
-	//	{
-	//		std::cout << el << ", ";
-	//		el = returnPath[el];
-	//	}
-	//
-	//	std::cout << "\n";
-	//}
-
 	std::reverse(returnVector.begin(), returnVector.end());
 	return returnVector;
 }
 
 
+inline std::vector<int> Graf::getPathLength(int from, std::vector<int> to, bool startFromOne)
+{
+	from -= (int)startFromOne;
+
+	std::vector<int> shortestPath;
+	shortestPath.resize(nodesCount, -1);
+
+	//std::vector<int> returnPath; //this will trace any node back to "from" using the shortest path
+	//returnPath.resize(nodesCount, -1);
+
+	std::queue<std::pair<int, int>> nodesToVisit; //current node, shortest path
+	nodesToVisit.push({from, 0});
+
+	while (!nodesToVisit.empty())
+	{
+		auto node = nodesToVisit.front();
+		nodesToVisit.pop();
+
+		auto n = getNeighbours(node.first);
+
+		for (auto i = n.first; i < n.second; i++)
+		{
+			if (*i != from) //not visit the first node
+			{
+				if (shortestPath[*i] == -1) //node not visited
+				{
+					shortestPath[*i] = node.second + 1;
+					nodesToVisit.push({*i, node.second + 1});
+					//returnPath[*i] = node.first;
+				}
+			}
+		}
+	}
+
+	std::vector<int> returnVector;
+	returnVector.reserve(nodesCount);
+	for (int i=0;i<nodesCount;i++)
+	{
+		returnVector.push_back(shortestPath[i]);
+	}
+	
+	return returnVector;
+
+	//if we ever want to specify which values to return
+	//std::vector<int> returnVector;
+	//returnVector.reserve(to.size());
+	//for (auto i : to)
+	//{
+	//	returnVector.push_back(shortestPath[i - (int)startFromOne]);
+	//}
+	//
+	//return returnVector;
+}
 
 
-#pragma endregion
-
-
-#pragma region conversions
-inline std::vector<int> Graf::getMatrix(int *nodesCount)
+inline std::vector<int> Graf::getMatrix(int* nodesCount)
 {
 	if (nodesCount) { *nodesCount = this->nodesCount; }
 
@@ -377,7 +392,7 @@ inline std::vector<std::vector<int>> Graf::getListOfNeighbours(bool startFromOne
 {
 	std::vector<std::vector<int>> ret;
 	ret.reserve(nodesCount + (int)startFromOne);
-	
+
 	if (startFromOne)
 	{
 		ret.push_back({});
@@ -398,10 +413,8 @@ inline std::vector<std::vector<int>> Graf::getListOfNeighbours(bool startFromOne
 
 	return ret;
 }
-#pragma endregion
 
 
-#pragma region prints
 inline void Graf::printMatrix()
 {
 	auto m = getMatrix(nullptr);
@@ -444,9 +457,9 @@ inline void Graf::printPairsOfEdges(bool startFromOne)
 {
 	auto edges = getPairsOfEdges(startFromOne);
 
-	for(auto &i :edges)
+	for (auto& i : edges)
 	{
 		std::cout << i.first + (int)startFromOne << " " << i.second + (int)startFromOne << "\n";
 	}
 }
-#pragma endregion
+
