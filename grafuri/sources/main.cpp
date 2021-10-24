@@ -62,7 +62,7 @@ int main()
 
 	
 	//g.createFromMatrix(matrix, 9);
-	g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true);
+	g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true, false);
 	//g.createFromListOfNeighbours(listOfNeighbours, true);
 	
 

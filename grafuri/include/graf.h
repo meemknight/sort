@@ -19,8 +19,8 @@ struct Graf
 	//data is a nodesCount * nodesCount matrix with 0 or one
 	void createFromMatrix(const int* data, int nodesCount);
 
-	//data is a pair of 2 numbers defining an edge (1-2 is the same as 2-1 and edges like 1-1 are ignored)
-	void createFromPairsOfEdges(const int* data, int edgesCount, bool startFromOne, int optionalNodes = -1);
+	//data is a pair of 2 numbers defining an edge (this supports oriented grafs)
+	void createFromPairsOfEdges(const int* data, int edgesCount, bool startFromOne, bool oriented, int optionalNodes = -1);
 
 	//for every node(first vector) we have some neighbours(second vector)
 	void createFromListOfNeighbours(const std::vector<std::vector<int>>& data, bool startFromOne);
@@ -57,6 +57,7 @@ struct Graf
 	std::vector<int> getMatrix(int* nodesCount);
 	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne);
 	std::vector<std::vector<int>> getListOfNeighbours(bool startFromOne);
+	int countComponenteConexe();
 
 	void printMatrix();
 	void printListOfNeighbours(bool startFromOne); //prints all neighbours from nodes
@@ -103,14 +104,23 @@ inline void Graf::createFromMatrix(const int* data, int nodesCount)
 	neighbours.shrink_to_fit();
 }
 
-inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool startFromOne, int optionalNodes)
+inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool startFromOne,
+	bool oriented, int optionalNodes)
 {
 	neighbours.clear();
 	entries.clear();
 	this->nodesCount = 0;
 
-	if (edgesCount == 0) { return; }
-	if (optionalNodes == 0) { return; }
+	if (edgesCount == 0 || optionalNodes == 0)
+	{
+		if (optionalNodes > 0)
+		{
+			this->nodesCount = optionalNodes;
+			entries.resize(this->nodesCount);
+		}
+		return;
+	}
+
 
 	std::vector<std::pair<int, int>> sortedData;
 	sortedData.reserve(edgesCount);
@@ -118,7 +128,11 @@ inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool s
 	for (int i = 0; i < edgesCount; i++)
 	{
 		sortedData.emplace_back(data[i * 2 + 0] - (int)startFromOne, data[i * 2 + 1] - (int)startFromOne);
-		//sortedData.emplace_back(data[i * 2 + 1] - (int)startFromOne, data[i * 2 + 0] - (int)startFromOne);
+
+		if (!oriented)
+		{
+			sortedData.emplace_back(data[i * 2 + 1] - (int)startFromOne, data[i * 2 + 0] - (int)startFromOne);
+		}
 	}
 
 	//todo remove duplicates if they exist
@@ -412,6 +426,39 @@ inline std::vector<std::vector<int>> Graf::getListOfNeighbours(bool startFromOne
 	}
 
 	return ret;
+}
+
+void dfs(Graf &g, int &componenteConexe, std::vector<unsigned char> &visited, int index)
+{
+	if (visited[index] == 0)
+	{
+		componenteConexe++;
+		visited[index] = 1;
+
+		auto vecini = g.getNeighbours(index);
+
+		for (auto j = vecini.first; j < vecini.second; j++)
+		{
+			dfs(g,componenteConexe, visited, *j);
+		}
+
+	}
+};
+
+
+inline int Graf::countComponenteConexe()
+{
+	std::vector<unsigned char> visited;
+	visited.resize(nodesCount);
+
+	int componenteConexe = 0;
+	
+	for (int i = 0; i < nodesCount; i++)
+	{
+		dfs(*this, componenteConexe, visited, i);
+	}
+
+	return componenteConexe;
 }
 
 
