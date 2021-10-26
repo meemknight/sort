@@ -6,6 +6,7 @@
 #include <set>
 #include <queue>
 #include <limits.h>
+#include <iostream>
 
 #undef max
 #undef min
@@ -52,7 +53,7 @@ struct Graf
 	//"from" should not be equal to "to"
 	std::vector<int> getShortestPath(int from, std::vector<int> to, bool startFromOne);
 	std::vector<int> getPathLength(int from, std::vector<int> to, bool startFromOne);
-
+	std::vector<int> getTopologicSort(bool startFromOne);
 
 	std::vector<int> getMatrix(int* nodesCount);
 	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne);
@@ -340,6 +341,56 @@ inline std::vector<int> Graf::getPathLength(int from, std::vector<int> to, bool 
 	//}
 	//
 	//return returnVector;
+}
+
+inline std::vector<int> Graf::getTopologicSort(bool startFromOne)
+{
+	std::queue<int> noduri;
+
+	std::vector<int> gradeInterioare;
+	gradeInterioare.resize(nodesCount);
+
+	for (int i = 0; i < nodesCount; i++)
+	{
+		auto v = getNeighbours(i);
+
+		for (auto j = v.first; j < v.second; j++)
+		{
+			gradeInterioare[*j]++;
+		}
+	}
+
+	for (int i=0; i< gradeInterioare.size(); i++)
+	{
+		if (gradeInterioare[i] == 0)
+		{
+			noduri.push(i);
+		}
+	}
+
+	std::vector<int> ret;
+	ret.reserve(nodesCount);
+
+	while (!noduri.empty())
+	{
+		auto t = noduri.front();
+		ret.push_back(t + (int)startFromOne);
+
+		auto vecini = getNeighbours(t);
+		
+		for (auto j = vecini.first; j < vecini.second; j++)
+		{
+			gradeInterioare[*j]--;
+			if (gradeInterioare[*j] == 0)
+			{
+				noduri.push(*j);
+			}
+		}
+
+		noduri.pop();
+	}
+
+	return ret;
 }
 
 
