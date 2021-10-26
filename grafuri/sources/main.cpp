@@ -75,7 +75,7 @@ int main()
 	
 	//g.createFromMatrix(matrix, 9);
 	//g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true, false);
-	g.createFromPairsOfEdges(edges2, (sizeof(edges2) / sizeof(int)) / 2, true, true, 9);
+	//g.createFromPairsOfEdges(edges2, (sizeof(edges2) / sizeof(int)) / 2, true, true, 9);
 	//g.createFromListOfNeighbours(listOfNeighbours, true);
 	
 
@@ -90,8 +90,10 @@ int main()
 	//g.printListOfNeighbours(true);
 	//g.printPairsOfEdges(true);
 
-	auto r = g.getTopologicSort(true);
-	for (auto i : r) { std::cout << i << " "; }
+	//auto r = g.getTopologicSort(true);
+	//for (auto i : r) { std::cout << i << " "; }
+
+	std::cout << havelHakimi({3,3,3,2,2,1});
 
 	system("pause");
 	return 0;

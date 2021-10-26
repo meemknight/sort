@@ -67,6 +67,51 @@ struct Graf
 
 };
 
+bool havelHakimi(std::vector<int> grade)
+{
+	while (true)
+	{
+		std::sort(grade.begin(), grade.end(), std::greater<int>());
+		while (!grade.empty() && grade.back() == 0)
+		{
+			grade.erase(grade.begin() + grade.size() - 1);
+		}
+
+		if (grade.size() > 1)
+		{
+			int g = grade[0];
+
+			for(int i=1; g>0; i++, g--)
+			{
+				if (i >= grade.size())
+				{
+					return 0;
+				}
+				else
+				{
+					grade[i]--;
+				}
+			}
+
+			grade.erase(grade.begin());
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if (grade.empty())
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
 inline void Graf::createFromMatrix(const int* data, int nodesCount)
 {
 	neighbours.clear();
