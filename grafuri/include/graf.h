@@ -27,7 +27,6 @@ struct Graf
 	void createFromListOfNeighbours(const std::vector<std::vector<int>>& data, bool startFromOne);
 
 
-
 	int nodesCount = 0;		// this number of elements
 
 	struct Entry
@@ -50,20 +49,24 @@ struct Graf
 	std::pair<std::vector<int>::iterator, std::vector<int>::iterator>
 		getNeighbours(int element);
 
+
+	Graf crateTranspose(bool oriented);
+
 	//"from" should not be equal to "to"
 	std::vector<int> getShortestPath(int from, std::vector<int> to, bool startFromOne);
 	std::vector<int> getPathLength(int from, std::vector<int> to, bool startFromOne);
 	std::vector<int> getTopologicSort(bool startFromOne);
 
 	std::vector<int> getMatrix(int* nodesCount);
-	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne);
+	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne, bool oriented);
 	std::vector<std::vector<int>> getListOfNeighbours(bool startFromOne);
 	int countComponenteConexe();
+	std::vector<std::vector<int>> getStronglyConectedComponents(bool startFromOne);
+
 
 	void printMatrix();
 	void printListOfNeighbours(bool startFromOne); //prints all neighbours from nodes
-	void printPairsOfEdges(bool startFromOne);
-
+	void printPairsOfEdges(bool startFromOne, bool oriented);
 
 };
 
@@ -271,6 +274,21 @@ inline std::pair<std::vector<int>::iterator, std::vector<int>::iterator> Graf::g
 	return ret;
 }
 
+inline Graf Graf::crateTranspose(bool oriented)
+{
+	auto initialGraf = this->getPairsOfEdges(0, oriented);
+
+	for (auto &i : initialGraf) 
+	{
+		std::swap(i.first, i.second);
+	}
+
+	Graf g;
+	g.createFromPairsOfEdges(&initialGraf[0].first, initialGraf.size(), 0, true, this->nodesCount);
+
+	return g;
+}
+
 inline std::vector<int> Graf::getShortestPath(int from, std::vector<int> to, bool startFromOne)
 {
 	from -= (int)startFromOne;
@@ -473,29 +491,53 @@ inline std::vector<int> Graf::getMatrix(int* nodesCount)
 	return ret;
 }
 
-inline std::vector<std::pair<int, int>> Graf::getPairsOfEdges(bool startFromOne)
+inline std::vector<std::pair<int, int>> Graf::getPairsOfEdges(bool startFromOne, bool oriented)
 {
-	std::vector<std::pair<int, int>> edges;
-	edges.reserve(neighbours.size() + 2);
 
-	for (int i = 0; i < nodesCount; i++)
+	if (!oriented)
 	{
-		auto n = getNeighbours(i);
-		for (auto j = n.first; j < n.second; j++)
+		std::vector<std::pair<int, int>> edges;
+		edges.reserve(neighbours.size() + 2);
+
+		for (int i = 0; i < nodesCount; i++)
 		{
-			auto a = i, b = *j;
-			if (a > b)
+			auto n = getNeighbours(i);
+			for (auto j = n.first; j < n.second; j++)
 			{
-				std::swap(a, b);
+				auto a = i, b = *j;
+				if (a > b)
+				{
+					std::swap(a, b);
+				}
+				edges.emplace_back(a, b);
 			}
-			edges.emplace_back(a, b);
 		}
+
+		std::set<std::pair<int, int>> s(edges.begin(), edges.end()); //todo replace with unordered_set
+		edges.assign(s.begin(), s.end());
+
+		return edges;
 	}
+	else
+	{
+		std::vector<std::pair<int, int>> edges;
+		edges.reserve(neighbours.size() + 2);
 
-	std::set<std::pair<int, int>> s(edges.begin(), edges.end()); //todo replace with unordered_set
-	edges.assign(s.begin(), s.end());
+		for (int i = 0; i < nodesCount; i++)
+		{
+			auto n = getNeighbours(i);
+			for (auto j = n.first; j < n.second; j++)
+			{
+				edges.emplace_back(i, *j);
+			}
+		}
 
-	return edges;
+		//std::set<std::pair<int, int>> s(edges.begin(), edges.end()); //todo replace with unordered_set
+		//edges.assign(s.begin(), s.end());
+
+		return edges;
+	}
+	
 }
 
 inline std::vector<std::vector<int>> Graf::getListOfNeighbours(bool startFromOne)
@@ -557,6 +599,98 @@ inline int Graf::countComponenteConexe()
 	return componenteConexe;
 }
 
+void dfsForStronglyConected(Graf& g, std::vector<std::pair<char, char>> &plusMinus, int index, bool minus)
+{
+	if (plusMinus[index].first != 2)
+	{
+		char* v = 0;
+		if (minus)
+		{
+			v = &plusMinus[index].second;
+		}
+		else
+		{
+			v = &plusMinus[index].first;
+		}
+
+		if (*v == 0)
+		{
+			*v = 1;
+
+			auto vecini = g.getNeighbours(index);
+
+			for (auto j = vecini.first; j < vecini.second; j++)
+			{
+				dfsForStronglyConected(g, plusMinus, *j, minus);
+			}
+
+		}
+	
+	}
+};
+
+inline std::vector<std::vector<int>> Graf::getStronglyConectedComponents(bool startFromOne)
+{
+	if (nodesCount == 0) { return {}; }
+
+	std::vector<std::vector<int>> returnVector;
+	returnVector.reserve(100);
+
+	std::vector<std::pair<char,char>> plusMinus;
+	plusMinus.resize(nodesCount, {});
+
+
+	auto transpusGraf = crateTranspose(true);
+
+	//we will mark plusMinus.first = 2 for nodes that are eliminated
+	while (true)
+	{
+		int index = -1;
+
+		for (int i = 0; i<plusMinus.size(); i++)
+		{
+			if (plusMinus[i].first != 2)
+			{
+				index = i;
+				break;
+			}
+		}
+
+		if (index < 0)
+		{
+			//found all the strongly conex grafs
+			break;
+		}
+
+		dfsForStronglyConected(*this, plusMinus, index, 0);
+		dfsForStronglyConected(transpusGraf, plusMinus, index, 1);
+		
+		returnVector.push_back({});
+		returnVector.back().reserve(100);
+		for (int i = 0; i<plusMinus.size(); i++)
+		{
+
+			if (plusMinus[i].first == 1 && plusMinus[i].second == 1)
+			{
+				plusMinus[i].first = 2;
+				returnVector.back().push_back(i + (int)startFromOne);
+			}
+			else
+			{
+				if (plusMinus[i].first != 2)
+				{
+					plusMinus[i] = {};
+				}
+			}
+
+		}
+
+	}
+
+
+	return returnVector;
+}
+
 
 inline void Graf::printMatrix()
 {
@@ -596,9 +730,9 @@ inline void Graf::printListOfNeighbours(bool startFromOne)
 
 }
 
-inline void Graf::printPairsOfEdges(bool startFromOne)
+inline void Graf::printPairsOfEdges(bool startFromOne, bool oriented)
 {
-	auto edges = getPairsOfEdges(startFromOne);
+	auto edges = getPairsOfEdges(startFromOne, oriented);
 
 	for (auto& i : edges)
 	{
