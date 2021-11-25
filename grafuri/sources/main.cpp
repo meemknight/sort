@@ -1,10 +1,71 @@
+#include <utility>
 #include <iostream>
 #include <cstdio>
 #include "graf.h"
+#include <map>
+#include <random>
+#include <unordered_set>
+#include <utility>
+#include <fstream>
 
 #ifdef PLATFORM_WIN32
 #include <Windows.h>
 #endif
+
+Graf createRandomOrientedGraf(int n)
+{
+
+	//std::unordered_set<std::pair<int, int>, pair_hash> edges;
+
+	std::mt19937 random{std::random_device()()};
+	std::uniform_int_distribution dist(0, 19);
+	std::uniform_int_distribution dist2(0, 200);
+	std::uniform_int_distribution grad(0, 50);
+
+	std::vector<std::pair<int, int>> edges;
+
+	for (int i = 0; i < 12; i++)
+	{
+		int to = 10 + dist(random);
+
+		if (to < n)
+		{
+			edges.emplace_back(0, to);
+		}
+	}
+
+	for (int i = 1; i < n; i++)
+	{
+		
+		auto grade = grad(random);
+		std::unordered_set<int> toNodes;
+		for(int j=0;j<grade; j++)
+		{
+			int to = ((i / 10) + 1) * 10 + dist2(random);
+
+			if (to < n)
+			{
+				if (to < 0)
+				{
+					__debugbreak();
+				}
+
+				toNodes.insert(to);
+			}
+		}
+
+		for (auto j : toNodes)
+		{
+			edges.emplace_back(i, j);
+		}
+	}
+
+
+	Graf g;
+	g.createFromPairsOfEdges(&edges[0].first, edges.size(), 0, 1, n);
+	return g;
+
+}
 
 
 int main()
@@ -62,6 +123,19 @@ int main()
 		8, 7,
 	};
 
+	int diametru[] = {
+		1, 2,
+		1, 3,
+		1, 4,
+		2, 5,
+		3, 6,
+		4, 7,
+		5, 8,
+		5, 9,
+		6, 10,
+		10, 11,
+	};
+
 	//std::vector<std::vector<int>> listOfNeighbours;
 	//listOfNeighbours.push_back({ });
 	//listOfNeighbours.push_back({ 2, 3, 4 });
@@ -77,30 +151,28 @@ int main()
 	
 	//g.createFromMatrix(matrix, 9);
 	//g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true, false);
-	g.createFromPairsOfEdges(ctc, (sizeof(ctc) / sizeof(int)) / 2, true, true, 8);
+	g.createFromPairsOfEdges(diametru, (sizeof(diametru) / sizeof(int)) / 2, true, true);
 	//g.createFromListOfNeighbours(listOfNeighbours, true);
 	
-	auto v = g.getStronglyConectedComponents(1);
+	std::cout << g.getDiameter() << "\n";
 
-	//auto v = g.getShortestPath(1, {8, 9}, true);
 
-	for (auto &i : v)
-	{
-		for (auto& j : i)
-		{
-			std::cout << j << " ";
-		}
-		std::cout << "\n";
-	}
-
-	//g.printMatrix();
-	//g.printListOfNeighbours(true);
-	//g.printPairsOfEdges(true);
-
-	//auto r = g.getTopologicSort(true);
-	//for (auto i : r) { std::cout << i << " "; }
-
-	//std::cout << havelHakimi({3,3,3,2,2,1});
+	//auto g2 = createRandomOrientedGraf(100'000);
+	//std::cout << g2.getStronglyConectedComponents(0).size();
+	//std::cout << g2.nodesCount << "\n";
+	//auto rez = g2.getPairsOfEdges(1, true);
+	//std::ofstream fout("drumminimdag.in");
+	//fout << g2.nodesCount << " " << rez.size() << "\n";
+	//std::mt19937 random{std::random_device()()};
+	//std::uniform_int_distribution dist(1, 10);
+	//
+	//
+	//for (int i = 0; i < rez.size(); i++)
+	//{
+	//	fout << rez[i].first << " " << rez[i].second << " " << dist(random) << "\n";
+	//}
+	//
+	//fout.close();
 
 	system("pause");
 	return 0;

@@ -8,6 +8,10 @@
 #include <limits.h>
 #include <iostream>
 
+#ifdef _MSC_VER
+#include <signal.h>
+#endif
+
 #undef max
 #undef min
 
@@ -45,7 +49,6 @@ struct Graf
 
 
 
-
 	std::pair<std::vector<int>::iterator, std::vector<int>::iterator>
 		getNeighbours(int element);
 
@@ -56,11 +59,16 @@ struct Graf
 	std::vector<int> getShortestPath(int from, std::vector<int> to, bool startFromOne);
 	std::vector<int> getPathLength(int from, std::vector<int> to, bool startFromOne);
 	std::vector<int> getTopologicSort(bool startFromOne);
+	std::vector<std::pair<int, int>> criticalConnections(bool startFromOne);
+
+	//doar arbori
+	int getDiameter();
+	int getDistanceToFarthestNode(int node);
 
 	std::vector<int> getMatrix(int* nodesCount);
 	std::vector<std::pair<int, int>> getPairsOfEdges(bool startFromOne, bool oriented);
 	std::vector<std::vector<int>> getListOfNeighbours(bool startFromOne);
-	int countComponenteConexe();
+	int countConexComponents();
 	std::vector<std::vector<int>> getStronglyConectedComponents(bool startFromOne);
 
 
@@ -70,8 +78,27 @@ struct Graf
 
 };
 
-bool havelHakimi(std::vector<int> grade)
+inline bool havelHakimi(std::vector<int> grade)
 {
+
+	// 5 4 4 3 3 2 2 1
+	// - 3 3 2 2 1 2 1
+	// - 3 3 2 2 2 1 1
+	// - - 2 1 1 2 1 1
+	// - - 2 2 1 1 1 1 -
+	// - - - 1 0 1 1 1
+	// - - - 1 1 1 1 -
+
+
+	// 5 4 4 3 3 2 2 1
+
+	//         |
+	//         V
+	// 1 2 3 4 5 6 7 8 -> nr de elemente
+	// 1 2 2 2 1
+	// 2 3 2 0 0 
+	// 4 2 0 0 0 - 
+
 	while (true)
 	{
 		std::sort(grade.begin(), grade.end(), std::greater<int>());
@@ -160,27 +187,45 @@ inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool s
 	entries.clear();
 	this->nodesCount = 0;
 
-	if (edgesCount == 0 || optionalNodes == 0)
+	if (edgesCount == 0)
 	{
-		if (optionalNodes > 0)
-		{
-			this->nodesCount = optionalNodes;
-			entries.resize(this->nodesCount);
-		}
 		return;
 	}
 
+	if (optionalNodes > 0)
+	{
+		this->nodesCount = optionalNodes;
+		entries.resize(this->nodesCount);
+	}
 
 	std::vector<std::pair<int, int>> sortedData;
 	sortedData.reserve(edgesCount);
+	int biggestEl = 0;
 
 	for (int i = 0; i < edgesCount; i++)
 	{
-		sortedData.emplace_back(data[i * 2 + 0] - (int)startFromOne, data[i * 2 + 1] - (int)startFromOne);
+		int a = data[i * 2 + 0] - (int)startFromOne;
+		int b = data[i * 2 + 1] - (int)startFromOne;
+
+		if (a > biggestEl) { biggestEl = a; }
+		if (b > biggestEl) { biggestEl = b; }
+
+	#ifdef _MSC_VER
+		if (a < 0 || b < 0 ||
+			((optionalNodes > 0)&&(a>= optionalNodes +startFromOne || b>= optionalNodes +startFromOne))
+			)
+		{
+			__debugbreak();
+			raise(SIGABRT);
+		}
+
+	#endif
+
+		sortedData.emplace_back(a, b);
 
 		if (!oriented)
 		{
-			sortedData.emplace_back(data[i * 2 + 1] - (int)startFromOne, data[i * 2 + 0] - (int)startFromOne);
+			sortedData.emplace_back(b, a);
 		}
 	}
 
@@ -206,7 +251,7 @@ inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool s
 	}
 	else
 	{
-		this->nodesCount = sortedData.back().first + 1;
+		this->nodesCount = biggestEl + 1;
 	}
 
 	entries.resize(this->nodesCount);
@@ -457,6 +502,132 @@ inline std::vector<int> Graf::getTopologicSort(bool startFromOne)
 }
 
 
+//todo
+void dfsCriticalConnections(Graf& g, std::vector<unsigned char>& visited, int index, std::vector<std::vector<int>> &adiacenta,
+	std::vector<std::vector<int>> intoarcere)
+{
+	if (visited[index] == 0)
+	{
+		visited[index] = 1;
+
+		auto vecini = g.getNeighbours(index);
+
+		for (auto j = vecini.first; j < vecini.second; j++)
+		{
+			if (visited[*j] == 0)
+			{
+				adiacenta[index].push_back(*j);
+			}
+
+			//dfsCriticalConnections(g, visited, *j, adiacenta);
+		}
+	}
+}
+
+//todo
+inline std::vector<std::pair<int, int>> Graf::criticalConnections(bool startFromOne)
+{
+
+
+	return std::vector<std::pair<int, int>>();
+}
+
+//doar pt arbore
+inline int Graf::getDiameter()
+{
+	int rootNode = 0;
+	//first find the root node
+	{
+		std::vector<int> grade;
+		grade.resize(nodesCount);
+
+		for (int i = 0; i < nodesCount; i++)
+		{
+			auto vecini = getNeighbours(i);
+			for (auto j = vecini.first; j < vecini.second; j++)
+			{
+				int g = *j;
+				grade[g]++;
+			}
+		}
+
+		for (int i = 0; i < grade.size(); i++)
+		{
+			if (grade[i] == 0) { rootNode = i; break; }
+		}
+	}
+	
+	int firstEnd = 0;
+	//find the farthest node.
+	{
+		std::queue<int> queue;
+		queue.push(rootNode);
+
+		while (!queue.empty())
+		{
+			int nod = queue.front();
+			firstEnd = nod;
+			queue.pop();
+
+			auto vecini = getNeighbours(nod);
+
+			for (auto i = vecini.first; i < vecini.second; i++)
+			{
+				queue.push(*i);
+			}
+		}
+	}
+
+	{
+		//find the farthest node.
+		
+		//we first make the not oriented graph
+		auto v = getPairsOfEdges(0, 1);
+
+		Graf g;
+		g.createFromPairsOfEdges((int*)v.data(), v.size(), 0, 0, nodesCount);
+		return g.getDistanceToFarthestNode(firstEnd);
+
+	}
+
+}
+
+//doar arbori
+inline int Graf::getDistanceToFarthestNode(int node)
+{
+	std::queue<std::pair<int, int>> queue;
+	queue.push({node, 0});
+	int biggestDistance = 0;
+	std::vector<char> visited;
+	visited.resize(nodesCount);
+	visited[node] = true;
+
+	while (!queue.empty())
+	{
+		auto nod = queue.front();
+		queue.pop();
+
+		if (nod.second > biggestDistance)
+		{
+			biggestDistance = nod.second;
+		}
+
+		auto vecini = getNeighbours(nod.first);
+
+		for (auto i = vecini.first; i < vecini.second; i++)
+		{
+			if (!visited[*i])
+			{
+				visited[*i] = true;
+				queue.push({*i, nod.second + 1});
+			}
+		}
+	}
+
+	return biggestDistance+1;
+}
+
+
 inline std::vector<int> Graf::getMatrix(int* nodesCount)
 {
 	if (nodesCount) { *nodesCount = this->nodesCount; }
@@ -509,7 +680,7 @@ inline std::vector<std::pair<int, int>> Graf::getPairsOfEdges(bool startFromOne,
 				{
 					std::swap(a, b);
 				}
-				edges.emplace_back(a, b);
+				edges.emplace_back(a+(int)startFromOne, b + (int)startFromOne);
 			}
 		}
 
@@ -528,7 +699,7 @@ inline std::vector<std::pair<int, int>> Graf::getPairsOfEdges(bool startFromOne,
 			auto n = getNeighbours(i);
 			for (auto j = n.first; j < n.second; j++)
 			{
-				edges.emplace_back(i, *j);
+				edges.emplace_back(i + (int)startFromOne, *j + (int)startFromOne);
 			}
 		}
 
@@ -584,7 +755,7 @@ void dfs(Graf &g, int &componenteConexe, std::vector<unsigned char> &visited, in
 };
 
 
-inline int Graf::countComponenteConexe()
+inline int Graf::countConexComponents()
 {
 	std::vector<unsigned char> visited;
 	visited.resize(nodesCount);
@@ -667,9 +838,8 @@ inline std::vector<std::vector<int>> Graf::getStronglyConectedComponents(bool st
 		
 		returnVector.push_back({});
 		returnVector.back().reserve(100);
-		for (int i = 0; i<plusMinus.size(); i++)
+		for (int i = 0; i < plusMinus.size(); i++)
 		{
-
 			if (plusMinus[i].first == 1 && plusMinus[i].second == 1)
 			{
 				plusMinus[i].first = 2;
@@ -682,7 +852,6 @@ inline std::vector<std::vector<int>> Graf::getStronglyConectedComponents(bool st
 					plusMinus[i] = {};
 				}
 			}
-
 		}
 
 	}
