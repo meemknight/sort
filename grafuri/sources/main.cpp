@@ -19,8 +19,8 @@ Graf createRandomOrientedGraf(int n)
 
 	std::mt19937 random{std::random_device()()};
 	std::uniform_int_distribution dist(0, 19);
-	std::uniform_int_distribution dist2(0, 200);
-	std::uniform_int_distribution grad(0, 50);
+	std::uniform_int_distribution dist2(0, 250);
+	std::uniform_int_distribution grad(0, 25);
 
 	std::vector<std::pair<int, int>> edges;
 
@@ -136,6 +136,25 @@ int main()
 		10, 11,
 	};
 
+	int euler[] = {
+		1, 2,
+		1, 3,
+		2, 2,
+		2, 3,
+		3, 4,
+		3, 4,
+	};
+
+	g.createFromPairsOfEdges(euler, 6, 1, 0, 4);
+
+	auto rez = g.getEulerianCycle(1);
+	for (auto i : rez)
+	{
+		std::cout << i << ' ';
+	}
+
+	std::cout << "\n";
+
 	//std::vector<std::vector<int>> listOfNeighbours;
 	//listOfNeighbours.push_back({ });
 	//listOfNeighbours.push_back({ 2, 3, 4 });
@@ -151,15 +170,15 @@ int main()
 	
 	//g.createFromMatrix(matrix, 9);
 	//g.createFromPairsOfEdges(edges, (sizeof(edges) / sizeof(int)) / 2, true, false);
-	g.createFromPairsOfEdges(diametru, (sizeof(diametru) / sizeof(int)) / 2, true, true);
+	//g.createFromPairsOfEdges(diametru, (sizeof(diametru) / sizeof(int)) / 2, true, true);
 	//g.createFromListOfNeighbours(listOfNeighbours, true);
 	
-	std::cout << g.getDiameter() << "\n";
+	//std::cout << g.getDiameter() << "\n";
 
 
-	//auto g2 = createRandomOrientedGraf(100'000);
-	//std::cout << g2.getStronglyConectedComponents(0).size();
-	//std::cout << g2.nodesCount << "\n";
+	//auto g2 = createRandomOrientedGraf(100000);
+	////std::cout << g2.getStronglyConectedComponents(0).size() << "\n";
+	////std::cout << g2.nodesCount << "\n";
 	//auto rez = g2.getPairsOfEdges(1, true);
 	//std::ofstream fout("drumminimdag.in");
 	//fout << g2.nodesCount << " " << rez.size() << "\n";

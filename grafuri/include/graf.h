@@ -60,6 +60,7 @@ struct Graf
 	std::vector<int> getPathLength(int from, std::vector<int> to, bool startFromOne);
 	std::vector<int> getTopologicSort(bool startFromOne);
 	std::vector<std::pair<int, int>> criticalConnections(bool startFromOne);
+	std::vector<int> getEulerianCycle(bool startFromOne);
 
 	//doar arbori
 	int getDiameter();
@@ -142,6 +143,22 @@ inline bool havelHakimi(std::vector<int> grade)
 
 }
 
+inline std::vector<std::vector<int>> royFloyd(std::vector<std::vector<int>> in)
+{
+	int n = in.size();
+	
+	for (int k = 0; k < n; k++)
+		for (int i = 1; i < n; i++)
+			for (int j = 1; j < n; j++)
+				if (in[i][k] && in[k][j] && (in[i][j] > in[i][k] + in[k][j] || !in[i][j]) && i != j)
+				{
+					in[i][j] = in[i][k] + in[k][j];
+				}
+
+	return in;
+};
+
+
 inline void Graf::createFromMatrix(const int* data, int nodesCount)
 {
 	neighbours.clear();
@@ -223,7 +240,7 @@ inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool s
 
 		sortedData.emplace_back(a, b);
 
-		if (!oriented)
+		if (!oriented && a != b)
 		{
 			sortedData.emplace_back(b, a);
 		}
@@ -260,7 +277,7 @@ inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool s
 	int lastNode = -1;
 	for (auto& i : sortedData)
 	{
-		if (i.first == i.second) { continue; }
+		//if (i.first == i.second) { continue; }
 
 		if (lastNode != i.first)
 		{
@@ -530,6 +547,57 @@ inline std::vector<std::pair<int, int>> Graf::criticalConnections(bool startFrom
 
 
 	return std::vector<std::pair<int, int>>();
+}
+
+//https://infoarena.ro/problema/ciclueuler
+//euler(nod v)
+//	cat timp(v are vecini)
+//		w = un vecin aleator al lui v
+//		sterge_muchie(v, w)
+//		euler(w)
+//	sfarsit cat timp
+//	adauga v la ciclu
+void euler(int nod, std::vector<std::vector<int>> &vecini, std::vector<int> &ciclu)
+{
+	while (!vecini[nod].empty())
+	{
+		int vecin = vecini[nod].back();
+		vecini[nod].pop_back();
+		if(nod != vecin)
+		{ 
+			auto f = std::find(vecini[vecin].begin(), vecini[vecin].end(), nod);
+			if (f != vecini[vecin].end())
+			{
+				*f = vecini[vecin].back();
+				vecini[vecin].pop_back();
+			}
+		}
+		euler(vecin, vecini, ciclu);
+	}
+	ciclu.push_back(nod);
+}
+
+inline std::vector<int> Graf::getEulerianCycle(bool startFromOne)
+{
+	auto vecini = this->getListOfNeighbours(0);
+	std::vector<int> ciclu;
+	ciclu.reserve(nodesCount);
+	euler(0, vecini, ciclu);
+
+	for (auto i : vecini)
+	{
+		if (!i.empty())
+		{
+			return {};
+		}
+	}
+
+	if (startFromOne)
+	{
+		for (auto& i : ciclu) { i++; }
+	}
+	
+	return ciclu;
 }
 
 //doar pt arbore
