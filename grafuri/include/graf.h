@@ -143,6 +143,58 @@ inline bool havelHakimi(std::vector<int> grade)
 
 }
 
+// leftmost element which is smaller than current index
+inline int LowerBound(int lf, int rg, int val, std::vector<int>& grade, int n)
+{
+	if (lf > rg) return n;
+
+	int mid = lf + (rg - lf) / 2;
+
+	if (grade[mid] <= val)
+		return std::min(mid, LowerBound(lf, mid - 1, val, grade, n));
+	else
+		return LowerBound(mid + 1, rg, val, grade, n);
+}
+
+inline bool ErdosGaillai(std::vector<int> &grade)
+{
+	int n = grade.size();
+	
+	if (n < 1) { return true; }
+	
+	std::sort(grade.begin(), grade.end());
+	std::vector<int> s;
+	s.resize(n);
+
+	s[0] = grade[0];
+	for (int i = 1; i < n; i++)
+	{
+		s[i] = s[i - 1] + grade[i];
+	}
+
+	if (s[n-1] % 2)
+		return false;
+	
+
+	for (int i = 0; i < n; i++)
+	{
+		int pos = LowerBound(i, n, i, grade, n);
+		long long val;
+
+		if (pos <= n)
+			val = 1LL * i * (i - 1) + s[n] - s[pos - 1] + i * (pos - i - 1);
+		else
+			val = 1LL * i * (i - 1) + i * (n - i);
+
+		if (s[i] > val)
+			return false;
+	}
+
+	return true;
+}
+
+
+
 inline std::vector<std::vector<int>> royFloyd(std::vector<std::vector<int>> in)
 {
 	int n = in.size();
