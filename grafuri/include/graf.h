@@ -862,23 +862,22 @@ inline std::vector<std::vector<int>> Graf::getListOfNeighbours(bool startFromOne
 	return ret;
 }
 
-void dfs(Graf &g, int &componenteConexe, std::vector<unsigned char> &visited, int index)
+
+void dfs(Graf& g, std::vector<unsigned char>& visited, int index)
 {
 	if (visited[index] == 0)
 	{
-		componenteConexe++;
 		visited[index] = 1;
 
 		auto vecini = g.getNeighbours(index);
 
 		for (auto j = vecini.first; j < vecini.second; j++)
 		{
-			dfs(g,componenteConexe, visited, *j);
+			dfs(g, visited, *j);
 		}
 
 	}
 };
-
 
 inline int Graf::countConexComponents()
 {
@@ -886,10 +885,14 @@ inline int Graf::countConexComponents()
 	visited.resize(nodesCount);
 
 	int componenteConexe = 0;
-	
+
 	for (int i = 0; i < nodesCount; i++)
 	{
-		dfs(*this, componenteConexe, visited, i);
+		if (visited[i] == 0)
+		{
+			componenteConexe++;
+			dfs(*this, visited, i);
+		}
 	}
 
 	return componenteConexe;
