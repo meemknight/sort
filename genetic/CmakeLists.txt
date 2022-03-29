@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.13)
+project(genetic)
+
+
+#Define MY_SOURCES to be a list of all the source files for my game 
+file(GLOB_RECURSE GENETIC_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
+add_executable(genetic)
+target_include_directories(genetic PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
+target_sources(genetic PRIVATE ${GENETIC_SRC})
+

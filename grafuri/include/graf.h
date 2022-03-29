@@ -292,7 +292,6 @@ inline void Graf::createFromPairsOfEdges(const int* data, int edgesCount, bool s
 			__debugbreak();
 			raise(SIGABRT);
 		}
-
 	#endif
 
 		sortedData.emplace_back(a, b);
